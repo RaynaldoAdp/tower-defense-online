@@ -24,6 +24,13 @@ $(document).ready(function(){
     		$('.roleChoice').remove();
     		role = data;
     })
+    
+    socket.on('createNewTile', createNewTile);
+    
+    socket.on('beginGame', beginGame);
+    
+    socket.on('createNewTower', createNewTower);
+    
 });
 
 var templateForPlayer1 =  "<form class='roleForm'>" +
@@ -44,6 +51,22 @@ function getRole(){
         var role = $('.chooseRole').val();
         socket.emit('roleChosen', role);
     })
+}
+
+function createNewTile(data){
+		tile = new Tile(data[0], data[1], data[2]);
+		tiles.push(tile);
+		gameArray[14- data[3]][data[4]] = mode;
+}
+
+function beginGame(data){
+		currentFrameCount = data;
+		path = findShortestPath([0,0]);
+}
+
+function createNewTower(data){
+		tower = new Tower(data[0] + 20, data[1] + 20);
+		towers.push(tower);
 }
 
 //logic for game
@@ -97,8 +120,9 @@ function detectButtons(){
 		mode = 125;
 	});
 	$('#begin').click(function(){
-		var y = 0;
 		currentFrameCount = frameCount;
+		//socket to begin game
+		socket.emit('beginGame', currentFrameCount);
 		path = findShortestPath([0,0]);
 	});
 	$('#tower').click(function(){
@@ -208,14 +232,20 @@ function mouseClicked(){
 	var positionX = division2(mouseX);
 	var positionY = division2(mouseY);
 	//create Tiles
-	tile = new Tile(pixelPositionX, pixelPositionY, mode);
-	tiles.push(tile);
-	gameArray[14- positionY][positionX] = mode;
+	if(mouseX > 0 && mouseX <600 && mouseY < 600 && mouseY > 0){
+			tile = new Tile(pixelPositionX, pixelPositionY, mode);
+			tiles.push(tile);
+			gameArray[14- positionY][positionX] = mode;
+			//socket for tiles
+			socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);
+	}
 
 	//create Towers
 	if(towerMode && mouseX > 0 && mouseY > 0){
 		tower = new Tower(pixelPositionX+20, pixelPositionY+20);
 		towers.push(tower);
+		//socket for towers
+		socket.emit('createNewTower', [pixelPositionX, pixelPositionY]);
 	}
 }
 

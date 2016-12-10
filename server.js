@@ -27,6 +27,18 @@ io.on('connection', function (socket) {
             socket.broadcast.emit('attacker', 'attacker');
         }
     })
+    
+    socket.on('createNewTile', function(data){
+        socket.broadcast.emit('createNewTile', data);
+    })
+    
+    socket.on('createNewTower', function(data){
+        socket.broadcast.emit('createNewTower', data); 
+    });
+    
+    socket.on('beginGame', function(data){
+        socket.broadcast.emit('beginGame', data);  
+    })
 });
 
 server.listen(process.env.PORT || 8080);
