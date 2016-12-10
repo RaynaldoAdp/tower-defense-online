@@ -56,7 +56,12 @@ function getRole(){
 function createNewTile(data){
 		tile = new Tile(data[0], data[1], data[2]);
 		tiles.push(tile);
-		gameArray[14- data[3]][data[4]] = mode;
+		if(data[2] === 'road'){
+				gameArray[14- data[3]][data[4]] = 'Empty';
+		}
+		else{
+				gameArray[14- data[3]][data[4]] = 'Blockage';
+		}		
 }
 
 function beginGame(data){
@@ -76,7 +81,7 @@ var gameArray = [];
 for(i = 0; i < 15; i++){
 	gameArray[i] = [];
 	for (j = 0; j < 15; j++){
-		gameArray[i][j] = "Empty";
+		gameArray[i][j] = "Neutral";
 	}
 }
 //starting and end point of the game
@@ -94,9 +99,13 @@ var towers = [];
 //array for projectiles spawned
 var projectiles = [];
 //controls the color and mode of the tiles
-var mode = 255;
+var mode;
 //controls whether tower mode is on or off
 var towerMode = false;
+//controls whether road mode is on or off
+var roadMode = false;
+//controls whether blockage mode is on or off
+var blockageMode = false;
 //the framecount when the game starts
 var currentFrameCount;
 //the framecount after the game starts
@@ -109,25 +118,42 @@ var queueForProjectiles = [];
 
 //function to detect buttons that are not in canvas
 function detectButtons(){
-	$('#1').click(function(){
-		event.preventDefault();
-		mode = 255;
+	$('#road').click(function(){
+		if(!roadMode){
+			roadMode = true;
+			mode = 'road';
+			towerMode = false;
+			blockageMode = false;
+		}
+		else{
+			roadMode = false;
+		}
 	});
-	$('#3').click(function(){
-		mode = 0;
+	
+	$('#blockage').click(function(){
+		if(!blockageMode){
+			blockageMode = true;
+			mode = 'blockage';
+			towerMode = false;
+			roadMode = false;
+		}
+		else{
+			tileMode = false;
+		}
 	});
-	$('#2').click(function(){
-		mode = 125;
-	});
+	
 	$('#begin').click(function(){
 		currentFrameCount = frameCount;
 		//socket to begin game
 		socket.emit('beginGame', currentFrameCount);
 		path = findShortestPath([0,0]);
 	});
+	
 	$('#tower').click(function(){
 		if(!towerMode){
 			towerMode = true;
+			roadMode = false;
+			blockageMode = false;
 		}
 		else{
 			towerMode = false;
@@ -147,7 +173,22 @@ function setup() {
 }
 
 function draw() {
-	background(0);
+	background(125);
+	
+	//starting and ending point tiles
+		fill(255, 255, 51);
+		rect(560, 0, 40, 40);
+		rect(0, 560, 40, 40);
+	
+	//controls the mechanism to show the tiles
+	for(i = 0; i < tiles.length; i++){
+		tiles[i].show();
+	}
+
+	//constrols the mechanism to show the towers
+	for(i = 0; i < towers.length; i++){
+		towers[i].show();
+	}	
 
 	//controls enemy spawn rate and number of enemies spawned
 	frameCountFromZero = frameCount - currentFrameCount + 18;
@@ -213,17 +254,6 @@ function draw() {
 			enemy.splice(i,1);
 		}
 	}
-
-	//controls the mechanism to show the tiles
-	for(i = 0; i < tiles.length; i++){
-		tiles[i].show();
-	}
-
-	//constrols the mechanism to show the towers
-	for(i = 0; i < towers.length; i++){
-		towers[i].show();
-	}
-
 }
 
 function mouseClicked(){
@@ -233,17 +263,35 @@ function mouseClicked(){
 	var positionY = division2(mouseY);
 	//create Tiles
 	if(mouseX > 0 && mouseX <600 && mouseY < 600 && mouseY > 0){
-			tile = new Tile(pixelPositionX, pixelPositionY, mode);
-			tiles.push(tile);
-			gameArray[14- positionY][positionX] = mode;
-			//socket for tiles
-			socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);
+		if(roadMode || blockageMode){
+			if(gameArray[14- positionY][positionX] ==="Neutral"){
+				tile = new Tile(pixelPositionX, pixelPositionY, mode);
+				tiles.push(tile);
+				if(mode === 'road'){
+						gameArray[14- positionY][positionX] = 'Empty';
+				}
+				else if(mode ==='blockage'){
+						gameArray[14- positionY][positionX] = 'Blockage';
+				}
+				//socket for tiles
+				socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);
+			}
+			else{
+				alert('Invalid Move');
+			}
+		}
 	}
 
 	//create Towers
-	if(towerMode && mouseX > 0 && mouseY > 0){
-		tower = new Tower(pixelPositionX+20, pixelPositionY+20);
-		towers.push(tower);
+	if(mouseX > 0 && mouseX <600 && mouseY < 600 && mouseY > 0)
+		if(towerMode && mouseX > 0 && mouseY > 0){
+			if(gameArray[14- positionY][positionX] ==="Blockage"){
+					tower = new Tower(pixelPositionX+20, pixelPositionY+20);
+					towers.push(tower);
+			}
+			else{
+				alert('Must build Towers on Blockages!');
+			}
 		//socket for towers
 		socket.emit('createNewTower', [pixelPositionX, pixelPositionY]);
 	}

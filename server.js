@@ -10,7 +10,7 @@ var io = socket_io(server);
 
 var playerCount = 0;
 
-io.on('connection', function (socket) {
+io.on('connection', function(socket) {
     playerCount++;
     if(playerCount % 2 === 0){
         socket.broadcast.emit('player1Found');
