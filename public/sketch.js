@@ -66,7 +66,7 @@ function createNewTile(data){
 
 function beginGame(data){
 		currentFrameCount = data;
-		path = findShortestPath([0,0]);
+		path = findShortestPath([0,0], gameArray);
 }
 
 function createNewTower(data){
@@ -84,9 +84,19 @@ for(i = 0; i < 15; i++){
 		gameArray[i][j] = "Neutral";
 	}
 }
+
+var conditionArray = [];
+for(i = 0; i < 15; i++){
+	conditionArray[i] = [];
+	for (j = 0; j < 15; j++){
+		conditionArray[i][j] = "Empty";
+	}
+}
 //starting and end point of the game
 gameArray[0][0] = "Start";
 gameArray[14][14] = "Goal";
+conditionArray[0][0] = "Start";
+conditionArray[14][14] = "Goal";
 
 //controls the path of the enemies
 var path = [];
@@ -146,7 +156,7 @@ function detectButtons(){
 		currentFrameCount = frameCount;
 		//socket to begin game
 		socket.emit('beginGame', currentFrameCount);
-		path = findShortestPath([0,0]);
+		path = findShortestPath([0,0], gameArray);
 	});
 	
 	$('#tower').click(function(){
@@ -264,17 +274,42 @@ function mouseClicked(){
 	//create Tiles
 	if(mouseX > 0 && mouseX <600 && mouseY < 600 && mouseY > 0){
 		if(roadMode || blockageMode){
-			if(gameArray[14- positionY][positionX] ==="Neutral"){
-				tile = new Tile(pixelPositionX, pixelPositionY, mode);
-				tiles.push(tile);
+			if(gameArray[14- positionY][positionX] ==="Neutral"){;
 				if(mode === 'road'){
 						gameArray[14- positionY][positionX] = 'Empty';
+						tile = new Tile(pixelPositionX, pixelPositionY, mode);
+				    tiles.push(tile);
+						socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);				    
 				}
 				else if(mode ==='blockage'){
-						gameArray[14- positionY][positionX] = 'Blockage';
+						conditionArray[14- positionY][positionX] = 'Blockage';
+						if(findShortestPath([0,0], conditionArray) === false){
+								conditionArray[14- positionY][positionX] = 'Empty';
+								alert('Cannot block entire path to end point');
+								for(i = 0; i < 15; i++){
+									for(j = 0; j < 15; j++){
+										if(conditionArray[i][j] === 'Visited'){
+											conditionArray[i][j] = 'Empty';											
+										}
+									}
+								}								
+						}
+						else{
+								tile = new Tile(pixelPositionX, pixelPositionY, mode);
+								tiles.push(tile);
+								conditionArray[14- positionY][positionX] = 'Blockage';
+								gameArray[14- positionY][positionX] = 'Blockage';
+								socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);				
+								for(i = 0; i < 15; i++){
+									for(j = 0; j < 15; j++){
+										if(conditionArray[i][j] === 'Visited'){
+											conditionArray[i][j] = 'Empty';											
+										}
+									}
+								}
+						}
 				}
 				//socket for tiles
-				socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);
 			}
 			else{
 				alert('Invalid Move');
@@ -314,7 +349,7 @@ function division2(position){
 
 // Start location will be in the following format:
 // [distanceFromTop, distanceFromLeft]
-var findShortestPath = function(startCoordinates) {
+var findShortestPath = function(startCoordinates, grid) {
   var distanceFromBottom = startCoordinates[1];
   var distanceFromLeft = startCoordinates[0];
 
@@ -336,7 +371,7 @@ var findShortestPath = function(startCoordinates) {
     var currentLocation = queue.shift();
 
     // Explore North
-    var newLocation = exploreInDirection(currentLocation, 'North');
+    var newLocation = exploreInDirection(currentLocation, 'North', grid);
     if (newLocation.status === 'Goal') {
       return newLocation.path;
     } else if (newLocation.status === 'Valid') {
@@ -344,7 +379,7 @@ var findShortestPath = function(startCoordinates) {
     }
 
     // Explore East
-    var newLocation = exploreInDirection(currentLocation, 'East');
+    var newLocation = exploreInDirection(currentLocation, 'East', grid);
     if (newLocation.status === 'Goal') {
       return newLocation.path;
     } else if (newLocation.status === 'Valid') {
@@ -352,7 +387,7 @@ var findShortestPath = function(startCoordinates) {
     }
 
     // Explore South
-    var newLocation = exploreInDirection(currentLocation, 'South');
+    var newLocation = exploreInDirection(currentLocation, 'South', grid);
     if (newLocation.status === 'Goal') {
       return newLocation.path;
     } else if (newLocation.status === 'Valid') {
@@ -360,7 +395,7 @@ var findShortestPath = function(startCoordinates) {
     }
 
     // Explore West
-    var newLocation = exploreInDirection(currentLocation, 'West');
+    var newLocation = exploreInDirection(currentLocation, 'West', grid);
     if (newLocation.status === 'Goal') {
       return newLocation.path;
     } else if (newLocation.status === 'Valid') {
@@ -377,8 +412,8 @@ var findShortestPath = function(startCoordinates) {
 // (a location is "valid" if it is on the grid, is not an "obstacle",
 // and has not yet been visited by our algorithm)
 // Returns "Valid", "Invalid", "Blocked", or "Goal"
-var locationStatus = function(location) {
-  var gridSize = gameArray.length;
+var locationStatus = function(location, grid) {
+  var gridSize = grid.length;
   var dfb = location.distanceFromBottom;
   var dfl = location.distanceFromLeft;
 
@@ -389,9 +424,9 @@ var locationStatus = function(location) {
 
     // location is not on the grid--return false
     return 'Invalid';
-  } else if (gameArray[dfb][dfl] === 'Goal') {
+  } else if (grid[dfb][dfl] === 'Goal') {
     return 'Goal';
-  } else if (gameArray[dfb][dfl] !== 'Empty') {
+  } else if (grid[dfb][dfl] !== 'Empty') {
     // location is either an obstacle or has been visited
     return 'Blocked';
   } else {
@@ -402,7 +437,7 @@ var locationStatus = function(location) {
 
 // Explores the grid from the given location in the given
 // direction
-var exploreInDirection = function(currentLocation, direction) {
+var exploreInDirection = function(currentLocation, direction, grid) {
   var newPath = currentLocation.path.slice();
   newPath.push(direction);
 
@@ -425,11 +460,11 @@ var exploreInDirection = function(currentLocation, direction) {
     path: newPath,
     status: 'Unknown'
   };
-  newLocation.status = locationStatus(newLocation);
+  newLocation.status = locationStatus(newLocation, grid);
 
   // If this new location is valid, mark it as 'Visited'
   if (newLocation.status === 'Valid') {
-    gameArray[newLocation.distanceFromBottom][newLocation.distanceFromLeft] = 'Visited';
+    grid[newLocation.distanceFromBottom][newLocation.distanceFromLeft] = 'Visited';
   }
 
   return newLocation;
