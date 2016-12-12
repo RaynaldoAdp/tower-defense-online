@@ -38,7 +38,15 @@ io.on('connection', function(socket) {
     
     socket.on('beginGame', function(data){
         socket.broadcast.emit('beginGame', data);  
-    })
+    });
+    
+    socket.on('attackerTurnEnd', function(){
+        socket.broadcast.emit('defenderTurn');
+    });
+    
+    socket.on('defenderTurnEnd', function(){
+        socket.broadcast.emit('attackerTurn');
+    });    
 });
 
 server.listen(process.env.PORT || 8080);

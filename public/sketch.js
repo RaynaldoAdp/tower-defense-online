@@ -18,11 +18,17 @@ $(document).ready(function(){
     socket.on('attacker', function(data){
     		$('.roleChoice').remove();
 				role = data;
+				$('.roleInfo').html(templateAttackerInfo);
+				$('.roleInfo').find($('.roadCount')).html(roadCount);
+				detectTurnButtons();
     })
     
     socket.on('defender', function(data){
     		$('.roleChoice').remove();
     		role = data;
+ 				$('.roleInfo').html(templateDefenderInfo);
+				$('.roleInfo').find($('.blockageCount')).html(blockageCount);
+				$('.roleInfo').find($('.towerCount')).html(towerCount);				
     })
     
     socket.on('createNewTile', createNewTile);
@@ -30,6 +36,10 @@ $(document).ready(function(){
     socket.on('beginGame', beginGame);
     
     socket.on('createNewTower', createNewTower);
+    
+    socket.on('attackerTurn', attackerTurn);
+    
+    socket.on('defenderTurn', defenderTurn);
     
 });
 
@@ -44,6 +54,29 @@ var templateForPlayer1 =  "<form class='roleForm'>" +
 
 				
 var templateForPlayer2 = "<h1>Please wait as the other player is choosing roles</h1>";
+														
+var templateAttackerInfo = "<h2>Info panel for attacker</h2>" +
+													 "<h3>Place roads to connect the starting point(bottom left) to end point(top right)</h3>" +
+													 "<h3>You can place 5 tiles of road every turn. Click on the road tile to place roads</h3>" +
+													 "<h3>Number of Road tiles left:<span class='roadCount'></span></h3>" +
+													 "<div class ='attackerStatus'><button class='attackerTurnEnd'>I am done with my turn</button></div>";
+
+var templateDefenderInfo = "<h2>Info panel for defender</h2>" +
+													 "<h3>Attacker will place roads to connect the starting point(bottom left) to end point(top right)</h3>" +
+													 "<h3>Your job is to place blockages to complicate the path of the enemies and place towers to kill your enemies </h3>" +
+													 "<h3>You can place 3 tiles of road every turn. Click on the road tile to place roads</h3>" +
+													 "<h3>You can only place towers on blockage tiles. Can only place 2 towers maximum</h3>" +													 
+													 "<h3>Number of Blockage tiles left:<span class='blockageCount'></span></h3>" +
+													 "<h3>Number of Towers left:<span class='towerCount'></span></h3>" +
+													 "<div class='defenderStatus'><h1>Please Wait as the attacker make his move</h1></div>";
+													 
+var templateAttackerDuringTurn = "<button class='attackerTurnEnd'>I am done with my turn</button>";
+
+var templateDefenderDuringTurn = "<button class ='defenderTurnEnd'>I am done with my turn</button>";
+
+var templateAttackerWaitingForDefender = "<h1>Please Wait as the defender make his move</h1>";
+
+var templateDefenderWaitingForAttacker = "<h1>Please Wait as the attacker make his move</h1>"; 
 
 function getRole(){
     $('.roleForm').submit(function(event){
@@ -72,6 +105,22 @@ function beginGame(data){
 function createNewTower(data){
 		tower = new Tower(data[0] + 20, data[1] + 20);
 		towers.push(tower);
+}
+
+function attackerTurn(){
+		roadCount = 5;
+		turn ='attacker';
+		$('.attackerStatus').html(templateAttackerDuringTurn);
+		$('.roleInfo').find($('.roadCount')).html(roadCount);
+		detectTurnButtons();
+}
+
+function defenderTurn(){
+		blockageCount = 3;
+		turn = 'defender';
+		$('.defenderStatus').html(templateDefenderDuringTurn);
+		$('.roleInfo').find($('.blockageCount')).html(blockageCount);		
+		detectTurnButtons();
 }
 
 //logic for game
@@ -124,31 +173,46 @@ var frameCountFromZero;
 var enemySpawnIndex = 0; 
 //queue for projectiles in order to make only 1 projectile exist at a time for one tower.
 var queueForProjectiles = [];
+//number of roads per turn
+var roadCount = 5;
+//number of blockages per turn
+var blockageCount = 3;
+//number of towers per game 
+var towerCount = 3;
+//decide whos turn is it
+var turn ='attacker';
 
 
 //function to detect buttons that are not in canvas
 function detectButtons(){
 	$('#road').click(function(){
-		if(!roadMode){
-			roadMode = true;
-			mode = 'road';
-			towerMode = false;
-			blockageMode = false;
+		if(role === 'attacker'){	
+			if(!roadMode){
+				roadMode = true;
+				mode = 'road';
+			}
+			else{
+				roadMode = false;
+			}
 		}
 		else{
-			roadMode = false;
+			alert('You need to be attacker to place roads');
 		}
 	});
 	
 	$('#blockage').click(function(){
-		if(!blockageMode){
-			blockageMode = true;
-			mode = 'blockage';
-			towerMode = false;
-			roadMode = false;
+		if(role === 'defender'){
+			if(!blockageMode){
+				blockageMode = true;
+				mode = 'blockage';
+				towerMode = false;
+			}
+			else{
+				tileMode = false;
+			}
 		}
 		else{
-			tileMode = false;
+			alert('You need to be defender to place blockages');
 		}
 	});
 	
@@ -160,20 +224,43 @@ function detectButtons(){
 	});
 	
 	$('#tower').click(function(){
-		if(!towerMode){
-			towerMode = true;
-			roadMode = false;
-			blockageMode = false;
+		if(role === 'defender'){
+			if(!towerMode){
+				towerMode = true;
+				blockageMode = false;
+			}
+			else{
+				towerMode = false;
+			}
 		}
 		else{
-			towerMode = false;
+			alert('You need to be defender to place towers');
 		}
 	});
 }
+	
 
 $(document).ready(function(){
 	detectButtons();
 });
+
+function detectTurnButtons(){
+		$('.attackerTurnEnd').click(function(){
+		$('.attackerStatus').html(templateAttackerWaitingForDefender);
+		socket.emit('attackerTurnEnd');
+	});
+	
+	$('.defenderTurnEnd').click(function(){
+		$('.defenderStatus').html(templateDefenderWaitingForAttacker);
+		socket.emit('defenderTurnEnd');
+	});
+	if(turn === 'attacker'){
+		turn === 'defender';
+	}
+	else{
+		turn === 'attacker'
+	}
+}
 
 
 //main logic of the canvas and the renderings
@@ -275,13 +362,20 @@ function mouseClicked(){
 	if(mouseX > 0 && mouseX <600 && mouseY < 600 && mouseY > 0){
 		if(roadMode || blockageMode){
 			if(gameArray[14- positionY][positionX] ==="Neutral"){;
-				if(mode === 'road'){
+				if(mode === 'road' && turn === 'attacker'){
+					if(roadCount > 0){
 						gameArray[14- positionY][positionX] = 'Empty';
 						tile = new Tile(pixelPositionX, pixelPositionY, mode);
 				    tiles.push(tile);
-						socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);				    
+				    roadCount--;
+				    $('.roleInfo').find($('.roadCount')).html(roadCount);						    
+						socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);
+					}
+					else{
+						alert('You have no more road tiles left');
+					}
 				}
-				else if(mode ==='blockage'){
+				else if(mode ==='blockage' && turn ==='defender'){
 						conditionArray[14- positionY][positionX] = 'Blockage';
 						if(findShortestPath([0,0], conditionArray) === false){
 								conditionArray[14- positionY][positionX] = 'Empty';
@@ -295,10 +389,13 @@ function mouseClicked(){
 								}								
 						}
 						else{
+							if(blockageCount > 0){
 								tile = new Tile(pixelPositionX, pixelPositionY, mode);
 								tiles.push(tile);
 								conditionArray[14- positionY][positionX] = 'Blockage';
 								gameArray[14- positionY][positionX] = 'Blockage';
+								blockageCount--;
+								$('.roleInfo').find($('.blockageCount')).html(blockageCount);
 								socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);				
 								for(i = 0; i < 15; i++){
 									for(j = 0; j < 15; j++){
@@ -307,6 +404,10 @@ function mouseClicked(){
 										}
 									}
 								}
+							}
+							else{
+								alert('You have no more Blockage tiles left');
+							}
 						}
 				}
 				//socket for tiles
@@ -321,14 +422,21 @@ function mouseClicked(){
 	if(mouseX > 0 && mouseX <600 && mouseY < 600 && mouseY > 0)
 		if(towerMode && mouseX > 0 && mouseY > 0){
 			if(gameArray[14- positionY][positionX] ==="Blockage"){
+				if(towerCount > 0){
 					tower = new Tower(pixelPositionX+20, pixelPositionY+20);
 					towers.push(tower);
+					towerCount--;
+					$('.roleInfo').find($('.towerCount')).html(towerCount);
+					socket.emit('createNewTower', [pixelPositionX, pixelPositionY]);
+				}
+				else{
+					alert('You have no more towers left');
+				}
 			}
 			else{
 				alert('Must build Towers on Blockages!');
 			}
 		//socket for towers
-		socket.emit('createNewTower', [pixelPositionX, pixelPositionY]);
 	}
 }
 
