@@ -78,6 +78,20 @@ var templateAttackerWaitingForDefender = "<h1>Please Wait as the defender make h
 
 var templateDefenderWaitingForAttacker = "<h1>Please Wait as the attacker make his move</h1>"; 
 
+var templateForGameEndAsAttacker = "<div class='endGame'><h1>Game has ended. Thanks for Playing! In order to play again please hit the refresh button</h1>" +
+																	 "<h1>Your score as attacker is: <span class ='finalScore'></span></h1>" +
+																	 "<h1>If you wish to put your score in the rankings, provide username below</h1>" +
+											      			 "<form><label for='userName'> User Name </label>" +
+											      			 "<input type='text' name='userName' id='userName' required />" +
+											      			 "<button type='submit'> Submit </button></form></div>";
+																	
+var templateForGameEndAsDefender = "<div class='endGame'><h1>Game has ended. Thanks for Playing! In order to play again please hit the refresh button</h1>" +
+																	 "<h1>Your score as defender is: <span class ='finalScore'></span></h1>" +
+																	 "<h1>If you wish to put your score in the rankings, provide username below</h1>" +
+												      		 "<form><label for='userName'> User Name </label>" +
+												      		 "<input type='text' name='userName' id='userName' required />" +
+												      		 "<button type='submit'> Submit </button></form></div>";
+
 function getRole(){
     $('.roleForm').submit(function(event){
         event.preventDefault();
@@ -148,6 +162,7 @@ conditionArray[0][0] = "Start";
 conditionArray[14][14] = "Goal";
 
 //controls the path of the enemies
+
 var path = [];
 //array for the enemies spawned
 var enemy = [];
@@ -170,7 +185,7 @@ var currentFrameCount;
 //the framecount after the game starts
 var frameCountFromZero;
 // controls how many enemies will be spawned
-var enemySpawnIndex = 0; 
+var enemyIndex = 0; 
 //queue for projectiles in order to make only 1 projectile exist at a time for one tower.
 var queueForProjectiles = [];
 //number of roads per turn
@@ -181,6 +196,16 @@ var blockageCount = 3;
 var towerCount = 3;
 //decide whos turn is it
 var turn ='attacker';
+//decide leaks
+var leaks = 0;
+//The attacker's final score
+var attackerFinalScore = 0;
+//The defender's final score
+var defenderFinalScore = 0;
+//The number of road tiles used in the end
+var roadTilesUsed = 0;
+//The number of blockage tiles used in the end
+var blockageTilesUsed = 0;
 
 
 //function to detect buttons that are not in canvas
@@ -217,10 +242,15 @@ function detectButtons(){
 	});
 	
 	$('#begin').click(function(){
-		currentFrameCount = frameCount;
-		//socket to begin game
-		socket.emit('beginGame', currentFrameCount);
-		path = findShortestPath([0,0], gameArray);
+		if(checkWhetherCanBegin()){
+			currentFrameCount = frameCount;
+			//socket to begin game
+			socket.emit('beginGame', currentFrameCount);
+			path = findShortestPath([0,0], gameArray);
+		}
+		else{
+			alert('Cannot begin game before starting point and end point is connected with roads');
+		}
 	});
 	
 	$('#tower').click(function(){
@@ -262,6 +292,65 @@ function detectTurnButtons(){
 	}
 }
 
+function checkWhetherCanBegin(){
+	if(findShortestPath([0,0], gameArray) === false){
+		for(i = 0; i < 15; i++){
+			for(j = 0; j < 15; j++){
+				if(gameArray[i][j] === 'Visited'){
+					gameArray[i][j] = "Empty";
+				}
+			}
+		}
+		return false
+	}
+	else{
+		for(i = 0; i < 15; i++){
+			for(j = 0; j < 15; j++){
+				if(gameArray[i][j] === 'Visited'){
+					gameArray[i][j] = "Empty";
+				}
+			}
+		}		
+		return true;
+	}
+}
+
+function checkNumberOfTilesUsed(){
+	for(i = 0; i < 15; i++){
+			for(j = 0; j < 15; j++){
+				if(gameArray[i][j] === 'Empty'){
+					roadTilesUsed++;
+				}
+				else if(gameArray[i][j] === 'Blockage'){
+					blockageTilesUsed++;
+				}
+			}
+	}
+}
+
+//calculate Final score which is a function of number of tiles used till game end and number of leaks
+function calculateScore(){
+	checkNumberOfTilesUsed();
+	if(role === 'attacker'){
+		finalScore = (200 - roadTilesUsed) * leaks;
+	}
+	else if(role ==='defender'){
+		finalScore = (200 - blockageTilesUsed) * 10 - (200 * leaks);
+	}
+}
+
+function gameEnds(){
+	if(role === 'attacker'){
+		$('body').html(templateForGameEndAsAttacker);
+	}
+	else if(role === 'defender'){
+		$('body').html(templateForGameEndAsDefender)
+	}
+	$('body').find('.finalScore').html(finalScore);	
+	noLoop();
+	roadMode = null;
+	blockageMode =null;
+}
 
 //main logic of the canvas and the renderings
 function setup() {
@@ -290,12 +379,10 @@ function draw() {
 	//controls enemy spawn rate and number of enemies spawned
 	frameCountFromZero = frameCount - currentFrameCount + 18;
 	if(frameCountFromZero % 20 === 0){
-		enemySpawnIndex++;
-		for(i = 0; i < enemySpawnIndex; i++){ //spawning too much enemies using for loop!!!!!!!!!
-			if(enemySpawnIndex < 11){
+		if(enemyIndex < 10){ 
 				var newEnemy = new Enemy();
 				enemy.push(newEnemy);
-			}
+				enemyIndex++;				
 		}
 	}
 
@@ -345,10 +432,22 @@ function draw() {
 		}
 	}
 
-	//enemies to disappear when its hp finish
+	//enemies to disappear when its hp finish or it pass through the end point
 	for(i = enemy.length -1; i >= 0; i--){
 		if(enemy[i].toDelete){
 			enemy.splice(i,1);
+		}
+		else if(enemy[i].x > 600 || enemy[i].y < 0){
+			leaks++;
+			enemy.splice(i, 1);
+		}
+	}
+	
+	//condition for game ending
+	if(frameCountFromZero > 100){
+		if(enemy.length === 0){
+			calculateScore();
+			gameEnds(); 
 		}
 	}
 }
@@ -410,7 +509,6 @@ function mouseClicked(){
 							}
 						}
 				}
-				//socket for tiles
 			}
 			else{
 				alert('Invalid Move');

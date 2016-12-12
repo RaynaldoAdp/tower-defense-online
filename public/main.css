@@ -40,7 +40,7 @@
     z-index: 10;
 }
 
-.chooseRole, label, input, .roleChoice button, .roleChoice h1{
+.chooseRole, .chooseRole label, .chooseRole input, .roleChoice button, .roleChoice h1{
     position: relative;
     top: 40vh;
     left: 40vw;
@@ -51,4 +51,9 @@
     position: absolute;
     top: 3vh;
     left: 50vw;
+}
+
+.endGame {
+    position: absolute;
+    top:20vh;
 }
