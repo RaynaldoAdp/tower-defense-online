@@ -700,9 +700,9 @@ function submitToLeaderBoard(){
 
 function postToDatabaseAsAttacker(name){
 	  var item = {'userName': name,
-	  						'attackerScore':	finalScore,
-	  						'defenderScore': null
-	  					 };
+  				  'attackerScore': finalScore,
+  				  'defenderScore': null
+	  			 };
 
     var ajax = $.ajax('/items', {
         type: 'POST',
@@ -715,9 +715,9 @@ function postToDatabaseAsAttacker(name){
 
 function postToDatabaseAsDefender(name){
 	  var item = {'userName': name,
-	  						'attackerScore':	null,
-	  						'defenderScore': finalScore
-	  					 };
+	  			  'attackerScore':	null,
+	  			  'defenderScore': finalScore
+	  			 };
 
     var ajax = $.ajax('/items', {
         type: 'POST',

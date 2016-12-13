@@ -74,7 +74,7 @@ var storage = {
       .exec(callback);
     },
     add: function(data, callback){
-      Item.create({userName : data.username, attackerScore : data.attackerScore, defenderScore: data.defenderScore}, callback);    
+      Item.create({userName : data.userName, attackerScore : data.attackerScore, defenderScore: data.defenderScore}, callback);    
     }
 }
 
