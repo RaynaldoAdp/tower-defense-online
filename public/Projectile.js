@@ -1,4 +1,5 @@
-var Projectile = function(tower){
+var Projectile = function(tower, towerIndex){
+	this.towerIndex = towerIndex;
 	this.x = tower.x;
 	this.y = tower.y;
 	this.r = 4;
@@ -7,7 +8,7 @@ var Projectile = function(tower){
 	this.velocityY = 0;
 
 	this.show = function(){
-		fill(255);	
+		fill(255);
 		ellipse(this.x, this.y , this.r * 2, this.r * 2);
 	}
 

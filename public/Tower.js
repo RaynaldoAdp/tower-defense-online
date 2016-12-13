@@ -4,7 +4,7 @@ var Tower = function(x, y){
 	this.queueForProjectiles = []; //mechanism to make sure tower only hit 1 enemy at a time instead of multiple enemies
 
 	this.show = function(){
-		fill(215,8,8);	
+		fill(215,8,8);
 		ellipse(this.x, this.y , 30, 30);
 	}
 
