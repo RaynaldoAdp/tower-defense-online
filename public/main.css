@@ -4,6 +4,17 @@
     border: 0;
 }
 
+body{
+	background-image:     
+	linear-gradient(
+  	to bottom,
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0.5)
+    ),
+    url("images/towers.jpg");
+	background-size: cover;
+}
+
 .mainContainer{
     height: 100vh;
     width: 100vw;
@@ -13,7 +24,7 @@
 .firstPlayer{
     position: absolute;
     top: 0;
-    background-color: green;
+    background-color: black;
     height: 100vh;
     width: 100vw;
     opacity: 0.5;
@@ -21,6 +32,7 @@
 }
 
 .firstPlayer h1{
+    color:white;
     position: relative;
     text-align: center;
     top: 40vh;
@@ -33,14 +45,21 @@
 .roleChoice{
     position: absolute;
     top: 0;
-    background-color: green;
+    background-color: black;
     height: 100vh;
     width: 100vw;
     opacity: 0.5;
     z-index: 10;
 }
 
-.chooseRole, .chooseRole label, .chooseRole input, .roleChoice button, .roleChoice h1{
+.roleChoice h1{
+    position: relative;
+    color:white;
+    top:40vh;
+    text-align: center;
+}
+
+.chooseRole, .chooseRole label, .chooseRole input, .roleChoice button{
     position: relative;
     top: 40vh;
     left: 40vw;
@@ -48,19 +67,52 @@
 
 .roleInfo {
     z-index: 1;
+    height: 90vh;
+    width: 50vw;
     position: absolute;
     top: 3vh;
     left: 50vw;
 }
 
+.roleInfo h1, .roleInfo h2, .roleInfo h3, .roleInfo h4{
+    color: white;
+}
+
 .endGame {
     position: absolute;
-    top:20vh;
+    top: 30vh;
+    height: 70vh;
+    width: 100vw;
+}
+
+.endGame h1{
+    color: white;
+    margin: 1vh;
+    text-align: center;
+}
+
+.endGame label, .endGame input{
+    position: relative;
+    left: 40vw;
+}
+
+.endGame label{
+    color: white;
+}
+
+.endGame button{
+    position: relative;
+    left: 40vw;
+}
+
+.leaderboard{
+    position: absolute;
+    bottom: 2vh;
 }
 
 table {
     font-family: arial, sans-serif;
-    border-collapse: collapse;
+    color: white;
     width: 100%;
 }
 
@@ -68,8 +120,26 @@ td, th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
+    width: 250px;
 }
 
-tr:nth-child(even) {
-    background-color: #dddddd;
+button {
+    margin-top: 1vh;
+    margin-left: 1vh;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 4px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
 }
+
+
+canvas {
+    position: absolute;
+    bottom: 0;
+}
+
