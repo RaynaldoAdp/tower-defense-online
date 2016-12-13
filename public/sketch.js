@@ -81,16 +81,16 @@ var templateDefenderWaitingForAttacker = "<h1>Please Wait as the attacker make h
 var templateForGameEndAsAttacker = "<div class='endGame'><h1>Game has ended. Thanks for Playing! In order to play again please hit the refresh button</h1>" +
 																	 "<h1>Your score as attacker is: <span class ='finalScore'></span></h1>" +
 																	 "<h1>If you wish to put your score in the rankings, provide username below</h1>" +
-											      			 "<form><label for='userName'> User Name </label>" +
+											      			 "<label for='userName'> User Name </label>" +
 											      			 "<input type='text' name='userName' id='userName' required />" +
-											      			 "<button type='submit'> Submit </button></form></div>";
+											      			 "<button type='submit' class='submitToLeaderBoard'> Submit </button></div>";
 																	
 var templateForGameEndAsDefender = "<div class='endGame'><h1>Game has ended. Thanks for Playing! In order to play again please hit the refresh button</h1>" +
 																	 "<h1>Your score as defender is: <span class ='finalScore'></span></h1>" +
 																	 "<h1>If you wish to put your score in the rankings, provide username below</h1>" +
-												      		 "<form><label for='userName'> User Name </label>" +
+												      		 "<label for='userName'> User Name </label>" +
 												      		 "<input type='text' name='userName' id='userName' required />" +
-												      		 "<button type='submit'> Submit </button></form></div>";
+												      		 "<button type='submit' class='submitToLeaderBoard'> Submit </button></div>";
 
 function getRole(){
     $('.roleForm').submit(function(event){
@@ -199,13 +199,13 @@ var turn ='attacker';
 //decide leaks
 var leaks = 0;
 //The attacker's final score
-var attackerFinalScore = 0;
-//The defender's final score
-var defenderFinalScore = 0;
+var finalScore = 0;
 //The number of road tiles used in the end
 var roadTilesUsed = 0;
 //The number of blockage tiles used in the end
 var blockageTilesUsed = 0;
+//The user's name for leaderboard purposes
+var userName = '';
 
 
 //function to detect buttons that are not in canvas
@@ -350,6 +350,7 @@ function gameEnds(){
 	noLoop();
 	roadMode = null;
 	blockageMode =null;
+	submitToLeaderBoard();
 }
 
 //main logic of the canvas and the renderings
@@ -675,3 +676,48 @@ var exploreInDirection = function(currentLocation, direction, grid) {
 
   return newLocation;
 };
+
+//Leaderboard logic
+function submitToLeaderBoard(){
+	$('.submitToLeaderBoard').click(function(event){
+		event.preventDefault();
+		userName = $('#userName').val();
+		$('button').remove();
+		if(role === 'attacker'){
+			postToDatabaseAsAttacker(userName);
+		}
+		else if(role ==='defender'){
+			postToDatabaseAsDefender(userName);
+		}
+	})
+}
+
+function postToDatabaseAsAttacker(name){
+	  var item = {'userName': name,
+	  						'attackerScore':	finalScore,
+	  						'defenderScore': null
+	  					 };
+	  					 
+    var ajax = $.ajax('/items', {
+        type: 'POST',
+        data: JSON.stringify(item),
+        dataType: 'json',
+        contentType: 'application/json'
+    });
+    ajax.done(console.log('posted!'));
+}
+
+function postToDatabaseAsDefender(name){
+	  var item = {'userName': name,
+	  						'attackerScore':	null,
+	  						'defenderScore': finalScore
+	  					 };
+	  					 
+    var ajax = $.ajax('/items', {
+        type: 'POST',
+        data: JSON.stringify(item),
+        dataType: 'json',
+        contentType: 'application/json'
+    });
+    ajax.done(console.log('posted!'));	
+}

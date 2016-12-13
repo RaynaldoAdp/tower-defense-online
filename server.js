@@ -10,6 +10,16 @@ var io = socket_io(server);
 
 var playerCount = 0;
 
+var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var config = require('./config');
+app.use(bodyParser.json());
+
+var Item = require('./models/item');
+
+mongoose.connect('mongodb://raynaldoadp:raynaldoadp@ds139567.mlab.com:39567/raynaldodb');
+
+//socket.io for real time experience
 io.on('connection', function(socket) {
     playerCount++;
     if(playerCount % 2 === 0){
@@ -48,5 +58,38 @@ io.on('connection', function(socket) {
         socket.broadcast.emit('attackerTurn');
     });    
 });
+
+//mongodb logic
+var storage = {
+    find: function(callback){
+      Item.find(callback);  
+    },
+    add: function(data, callback){
+      Item.create({userName : data.userName, attackerScore : data.attackerScore, defenderScore: data.defenderScore}, callback);    
+    }
+}
+
+app.get('/items', function(req,res) {
+    storage.find(function(err, items){
+        if(err) {
+            return res.status(500).json({
+                message: 'Internal Server Error'
+            });
+        }
+        res.json(items);
+    });
+});
+
+app.post('/items', function(req, res) {
+    storage.add(req.body, function(err, item){
+        if(err){
+            return res.status(500).json({
+                message: 'Internal Server Error'
+            });
+        }
+        res.status(201).json(item);
+    });
+});
+
 
 server.listen(process.env.PORT || 8080);
