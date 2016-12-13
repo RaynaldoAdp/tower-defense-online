@@ -17,18 +17,20 @@ $(document).ready(function(){
 
     socket.on('attacker', function(data){
     		$('.roleChoice').remove();
-				role = data;
-				$('.roleInfo').html(templateAttackerInfo);
-				$('.roleInfo').find($('.roadCount')).html(roadCount);
-				detectTurnButtons();
+			role = data;
+			$('.roleInfo').html(templateAttackerInfo);
+			getAttackerLeaderboard();
+			$('.roleInfo').find($('.roadCount')).html(roadCount);
+			detectTurnButtons();
     })
 
     socket.on('defender', function(data){
     		$('.roleChoice').remove();
     		role = data;
- 				$('.roleInfo').html(templateDefenderInfo);
-				$('.roleInfo').find($('.blockageCount')).html(blockageCount);
-				$('.roleInfo').find($('.towerCount')).html(towerCount);
+ 			$('.roleInfo').html(templateDefenderInfo);
+ 			getDefenderLeaderboard();
+			$('.roleInfo').find($('.blockageCount')).html(blockageCount);
+			$('.roleInfo').find($('.towerCount')).html(towerCount);
     })
 
     socket.on('createNewTile', createNewTile);
@@ -59,7 +61,12 @@ var templateAttackerInfo = "<h2>Info panel for attacker</h2>" +
 													 "<h3>Place roads to connect the starting point(bottom left) to end point(top right)</h3>" +
 													 "<h3>You can place 5 tiles of road every turn. Click on the road tile to place roads</h3>" +
 													 "<h3>Number of Road tiles left:<span class='roadCount'></span></h3>" +
-													 "<div class ='attackerStatus'><button class='attackerTurnEnd'>I am done with my turn</button></div>";
+													 "<div class ='attackerStatus'><button class='attackerTurnEnd'>I am done with my turn</button></div>" +
+													 "<div class='leaderboard'><h2>LEADERBOARDS</h2><table>" +
+													 "<tr><td>User Name</td><td>Score</td></tr>" +
+													 "<tr><td id='user1'></td><td id='score1'></td></tr>" +
+													 "<tr><td id='user2'></td><td id='score2'></td></tr>" +
+													 "<tr><td id='user3'></td><td id='score3'></td></tr></table></div>";
 
 var templateDefenderInfo = "<h2>Info panel for defender</h2>" +
 													 "<h3>Attacker will place roads to connect the starting point(bottom left) to end point(top right)</h3>" +
@@ -68,7 +75,12 @@ var templateDefenderInfo = "<h2>Info panel for defender</h2>" +
 													 "<h3>You can only place towers on blockage tiles. Can only place 2 towers maximum</h3>" +
 													 "<h3>Number of Blockage tiles left:<span class='blockageCount'></span></h3>" +
 													 "<h3>Number of Towers left:<span class='towerCount'></span></h3>" +
-													 "<div class='defenderStatus'><h1>Please Wait as the attacker make his move</h1></div>";
+													 "<div class='defenderStatus'><h1>Please Wait as the attacker make his move</h1></div>" +
+													 "<div class='leaderboard'><h2>LEADERBOARDS</h2><table>" +
+													 "<tr><td>User Name</td><td>Score</td></tr>" +
+													 "<tr><td id='user1'></td><td id='score1'></td></tr>" +
+													 "<tr><td id='user2'></td><td id='score2'></td></tr>" +
+													 "<tr><td id='user3'></td><td id='score3'></td></tr></table></div>";
 
 var templateAttackerDuringTurn = "<button class='attackerTurnEnd'>I am done with my turn</button>";
 
@@ -141,17 +153,17 @@ function defenderTurn(){
 
 //gameArray 15 x 15 representing the state of the game
 var gameArray = [];
-for(i = 0; i < 15; i++){
+for(var i = 0; i < 15; i++){
 	gameArray[i] = [];
-	for (j = 0; j < 15; j++){
+	for (var j = 0; j < 15; j++){
 		gameArray[i][j] = "Neutral";
 	}
 }
 
 var conditionArray = [];
-for(i = 0; i < 15; i++){
+for(var i = 0; i < 15; i++){
 	conditionArray[i] = [];
-	for (j = 0; j < 15; j++){
+	for (var j = 0; j < 15; j++){
 		conditionArray[i][j] = "Empty";
 	}
 }
@@ -294,8 +306,8 @@ function detectTurnButtons(){
 
 function checkWhetherCanBegin(){
 	if(findShortestPath([0,0], gameArray) === false){
-		for(i = 0; i < 15; i++){
-			for(j = 0; j < 15; j++){
+		for(var i = 0; i < 15; i++){
+			for(var j = 0; j < 15; j++){
 				if(gameArray[i][j] === 'Visited'){
 					gameArray[i][j] = "Empty";
 				}
@@ -304,8 +316,8 @@ function checkWhetherCanBegin(){
 		return false
 	}
 	else{
-		for(i = 0; i < 15; i++){
-			for(j = 0; j < 15; j++){
+		for(var i = 0; i < 15; i++){
+			for(var j = 0; j < 15; j++){
 				if(gameArray[i][j] === 'Visited'){
 					gameArray[i][j] = "Empty";
 				}
@@ -316,8 +328,8 @@ function checkWhetherCanBegin(){
 }
 
 function checkNumberOfTilesUsed(){
-	for(i = 0; i < 15; i++){
-			for(j = 0; j < 15; j++){
+	for(var i = 0; i < 15; i++){
+			for(var j = 0; j < 15; j++){
 				if(gameArray[i][j] === 'Empty'){
 					roadTilesUsed++;
 				}
@@ -368,12 +380,12 @@ function draw() {
 		rect(0, 560, 40, 40);
 
 	//controls the mechanism to show the tiles
-	for(i = 0; i < tiles.length; i++){
+	for(var i = 0; i < tiles.length; i++){
 		tiles[i].show();
 	}
 
 	//constrols the mechanism to show the towers
-	for(i = 0; i < towers.length; i++){
+	for(var i = 0; i < towers.length; i++){
 		towers[i].show();
 	}
 
@@ -388,11 +400,11 @@ function draw() {
 	}
 
 	//controls the tower detecting and shooting mechanism
-	for(i = 0; i < enemy.length; i++){
+	for(var i = 0; i < enemy.length; i++){
 		enemy[i].show();
 		enemy[i].update(path, frameCount, currentFrameCount);
         if(frameCount % 20 === 0){
-    		for(j = 0; j < towers.length; j++){
+    		for(var j = 0; j < towers.length; j++){
 				if(towers[j].detect(enemy[i]) && towers[j].queueForProjectiles.length === 0){
 					towers[j].addQueue();
 					projectile = new Projectile(towers[j], j);
@@ -401,30 +413,34 @@ function draw() {
 				}
     		}
         }
-		for(k = 0; k < projectiles.length; k++){
+		for(var k = 0; k < projectiles.length; k++){
 			if (projectiles[k].hit(enemy[i])){
                 towers[projectiles[k].towerIndex].removeQueue();
 				projectiles[k].disappear();
 				enemy[i].minusHp();
 			}
+			else if(projectiles[k].x < 0 || projectiles[k].x > 600 || projectiles[k].y < 0 || projectiles[k].y > 600 ){
+				projectiles[k].disappear();
+				towers[projectiles[k].towerIndex].removeQueue();
+			}
 		}
 	}
 
 	//controls the movements of the projectiles of the towers
-	for(i = 0; i < projectiles.length; i++){
+	for(var i = 0; i < projectiles.length; i++){
 		projectiles[i].show();
 		projectiles[i].update();
 	}
 
 	//projectiles to disappear when hit enemies
-	for(i = projectiles.length -1; i >= 0; i--){
+	for(var i = projectiles.length -1; i >= 0; i--){
 		if(projectiles[i].toDelete){
 			projectiles.splice(i,1);
 		}
 	}
 
 	//enemies to disappear when its hp finish or it pass through the end point
-	for(i = enemy.length -1; i >= 0; i--){
+	for(var i = enemy.length -1; i >= 0; i--){
 		if(enemy[i].toDelete){
 			enemy.splice(i,1);
 		}
@@ -470,8 +486,8 @@ function mouseClicked(){
 						if(findShortestPath([0,0], conditionArray) === false){
 								conditionArray[14- positionY][positionX] = 'Empty';
 								alert('Cannot block entire path to end point');
-								for(i = 0; i < 15; i++){
-									for(j = 0; j < 15; j++){
+								for(var i = 0; i < 15; i++){
+									for(var j = 0; j < 15; j++){
 										if(conditionArray[i][j] === 'Visited'){
 											conditionArray[i][j] = 'Empty';
 										}
@@ -487,8 +503,8 @@ function mouseClicked(){
 								blockageCount--;
 								$('.roleInfo').find($('.blockageCount')).html(blockageCount);
 								socket.emit('createNewTile', [pixelPositionX, pixelPositionY, mode, positionY, positionX]);
-								for(i = 0; i < 15; i++){
-									for(j = 0; j < 15; j++){
+								for(var i = 0; i < 15; i++){
+									for(var j = 0; j < 15; j++){
 										if(conditionArray[i][j] === 'Visited'){
 											conditionArray[i][j] = 'Empty';
 										}
@@ -710,4 +726,42 @@ function postToDatabaseAsDefender(name){
         contentType: 'application/json'
     });
     ajax.done(console.log('posted!'));
+}
+
+function getAttackerLeaderboard(){
+    var ajax = $.ajax('/items/attackerScore', {
+        type: 'GET',
+        dataType: 'json'
+    });
+    ajax.done(function(data){
+    	editAttackerLeaderboard(data);
+    });
+};
+
+function getDefenderLeaderboard(){
+    var ajax = $.ajax('/items/defenderScore', {
+        type: 'GET',
+        dataType: 'json'
+    });
+    ajax.done(function(data){
+    	(editDefenderLeaderboard(data));
+    });
+};
+
+function editAttackerLeaderboard(data){
+	$('#user1').html(data[0].userName);
+	$('#user2').html(data[1].userName);
+	$('#user3').html(data[2].userName);
+	$('#score1').html(data[0].attackerScore);	
+	$('#score2').html(data[1].attackerScore);
+	$('#score3').html(data[2].attackerScore);	
+}
+
+function editDefenderLeaderboard(data){
+	$('#user1').html(data[0].userName);
+	$('#user2').html(data[1].userName);
+	$('#user3').html(data[2].userName);
+	$('#score1').html(data[0].defenderScore);	
+	$('#score2').html(data[1].defenderScore);
+	$('#score3').html(data[2].defenderScore);	
 }

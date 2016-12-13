@@ -61,16 +61,25 @@ io.on('connection', function(socket) {
 
 //mongodb logic
 var storage = {
-    find: function(callback){
-      Item.find(callback);  
+    findDefenderScore : function(callback){
+      Item.find()
+      .sort('-defenderScore')
+      .limit(3)
+      .exec(callback);
+    },
+    findAttackerScore: function(callback){
+      Item.find()
+      .sort('-attackerScore')
+      .limit(3)
+      .exec(callback);
     },
     add: function(data, callback){
-      Item.create({userName : data.userName, attackerScore : data.attackerScore, defenderScore: data.defenderScore}, callback);    
+      Item.create({userName : data.username, attackerScore : data.attackerScore, defenderScore: data.defenderScore}, callback);    
     }
 }
 
-app.get('/items', function(req,res) {
-    storage.find(function(err, items){
+app.get('/items/attackerScore', function(req,res) {
+    storage.findAttackerScore(function(err, items){
         if(err) {
             return res.status(500).json({
                 message: 'Internal Server Error'
@@ -78,6 +87,17 @@ app.get('/items', function(req,res) {
         }
         res.json(items);
     });
+});
+
+app.get('/items/defenderScore', function(req,res){
+    storage.findDefenderScore(function(err,items){
+        if(err) {
+            return res.status(500).json({
+                message: 'Internal Server Error'
+            });
+        }
+        res.json(items);
+    }); 
 });
 
 app.post('/items', function(req, res) {
