@@ -124,7 +124,9 @@ function createNewTile(data){
 }
 
 function beginGame(data){
-		currentFrameCount = data;
+		currentFrameCount = data[0];
+		roadTilesUsed = data[1];
+		blockageTilesUsed = data[2];
 		path = findShortestPath([0,0], gameArray);
 }
 
@@ -257,8 +259,8 @@ function detectButtons(){
 		if(checkWhetherCanBegin()){
 			currentFrameCount = frameCount;
 			//socket to begin game
-			socket.emit('beginGame', currentFrameCount);
-			checkNumberOfTilesUsed();
+			checkNumberOfTilesUsed();			
+			socket.emit('beginGame', [currentFrameCount, roadTilesUsed, blockageTilesUsed]);
 			path = findShortestPath([0,0], gameArray);
 		}
 		else{
@@ -443,18 +445,18 @@ function draw() {
 	for(var i = enemy.length -1; i >= 0; i--){
 		if(enemy[i].toDelete){
 			enemy.splice(i,1);
+			if(enemy.length === 0){
+				calculateScore();
+				gameEnds();
+			}
 		}
 		else if(enemy[i].x > 600 || enemy[i].y < 0){
 			leaks++;
 			enemy.splice(i, 1);
-		}
-	}
-
-	//condition for game ending
-	if(frameCountFromZero > 100){
-		if(enemy.length === 0){
-			calculateScore();
-			gameEnds();
+			if(enemy.length === 0){
+				calculateScore();
+				gameEnds();
+			}
 		}
 	}
 }
