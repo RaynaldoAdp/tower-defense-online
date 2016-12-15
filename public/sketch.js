@@ -60,9 +60,11 @@ var templateForPlayer2 = "<h1>Please wait as the other player is choosing roles<
 var templateAttackerInfo =   "<h2>Info panel for attacker</h2><br>" +
 							 "<h4>Place roads to connect the starting point(bottom left) to end point(top right)</h4>" +
 							 "<h4>You can place 5 tiles of road every turn. Click on the road tile to place roads</h4>" +
-							 "<br><h3>Number of Road tiles left:<span class='roadCount'></span></h3><br><br><br>" +
+							 "<h4>Road tiles cannot be placed on blockage tiles and vice versa</h4>" +							 
+							 "<h4>You can begin the game once the starting point and end point is connected by roads" +
+							 "<br><br><h3>Number of Road tiles left:<span class='roadCount'></span></h3><br><br><br>" +
 							 "<div class ='attackerStatus'><button class='attackerTurnEnd'>I am done with my turn</button></div>" +
-							 "<div class='leaderboard'><h2>LEADERBOARDS</h2><table>" +
+							 "<div class='leaderboard'><h2>LEADERBOARDS AS ATTACKER</h2><table>" +
 							 "<tr><td>User Name</td><td>Score</td></tr>" +
 							 "<tr><td id='user1'></td><td id='score1'></td></tr>" +
 							 "<tr><td id='user2'></td><td id='score2'></td></tr>" +
@@ -70,17 +72,19 @@ var templateAttackerInfo =   "<h2>Info panel for attacker</h2><br>" +
 
 var templateDefenderInfo =   "<h2>Info panel for defender</h2><br>" +
 							 "<h4>Attacker will place roads to connect the starting point(bottom left) to end point(top right)</h4>" +
-							 "<h4>Your job is to place blockages to complicate the path of the enemies and place towers to kill your enemies </h4>" +
-							 "<h4>You can place 3 tiles of road every turn. Click on the road tile to place roads</h4>" +
-							 "<h4>You can only place towers on blockage tiles. Can only place 2 towers maximum</h4>" +
-							 "<br><h3>Number of Blockage tiles left:<span class='blockageCount'></span></h3>" +
+							 "<h4>Your job is to place blockages to complicate enemies path and place towers to kill enemies </h4>" +
+							 "<h4>You can place 3 tiles of blockages every turn. Click on the blockage tile to place blockages</h4>" +
+							 "<h4>Road tiles cannot be placed on blockage tiles and vice versa</h4>" +
+							 "<h4>You can only place towers on blockage tiles. Can only place 3 towers maximum</h4>" +
+							 "<h4>You can begin the game once the starting point and end point is connected by roads" +
+							 "<br><br><h3>Number of Blockage tiles left:<span class='blockageCount'></span></h3>" +
 							 "<h3>Number of Towers left:<span class='towerCount'></span></h3><br><br><br>" +
 							 "<div class='defenderStatus'><h1>Please Wait as the attacker make his move</h1></div>" +
-							 "<div class='leaderboard'><h2>LEADERBOARDS</h2><table>" +
+							 "<div class='leaderboard'><h2>LEADERBOARDS AS DEFENDER</h2><table>" +
 							 "<tr><td>User Name</td><td>Score</td></tr>" +
-													 "<tr><td id='user1'></td><td id='score1'></td></tr>" +
-													 "<tr><td id='user2'></td><td id='score2'></td></tr>" +
-													 "<tr><td id='user3'></td><td id='score3'></td></tr></table></div>";
+							 "<tr><td id='user1'></td><td id='score1'></td></tr>" +
+							 "<tr><td id='user2'></td><td id='score2'></td></tr>" +
+							 "<tr><td id='user3'></td><td id='score3'></td></tr></table></div>";
 
 var templateAttackerDuringTurn = "<button class='attackerTurnEnd'>I am done with my turn</button>";
 
