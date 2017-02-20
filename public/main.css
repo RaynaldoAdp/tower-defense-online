@@ -143,3 +143,7 @@ canvas {
     bottom: 0;
 }
 
+h1, h2, h3, h4, button, td, th{
+     font-family: "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif;
+}
+

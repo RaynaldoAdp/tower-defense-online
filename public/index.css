@@ -1,0 +1,59 @@
+*{
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body{
+	background-image:     
+	linear-gradient(
+  	to bottom,
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0.5)
+    ),
+    url("images/towers.jpg");
+	background-size: cover;
+}
+
+button {
+    margin-top: 1vh;
+    margin-left: 1vh;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 4px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+videoContainer{
+  position: relative;
+}
+
+controls{
+  position: absolute;
+  bottom: 0;
+}
+
+h1, h2{
+  margin: 5vh;
+  color: white;
+  position: relative;
+  top: 15vh;
+  text-align: center;
+}
+
+a{ 
+  position: relative;
+  display: block;
+  text-align: center;
+  top: 15vh;
+  margin: 2vh;
+}
+
+h1, h2, button{
+  font-family: "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif;
+}
